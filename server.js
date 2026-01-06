@@ -6,24 +6,23 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public")); // serves index.html + jk.js
+app.use(express.static("public")); // serves index.html
 
-let waitingUser = null; // queue for stranger matching
+let waitingUser = null;
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  if (waitingUser) {
-    // Pair with waiting user
-    io.to(waitingUser).emit("match", socket.id);
-    io.to(socket.id).emit("match", waitingUser);
-    waitingUser = null;
-  } else {
-    // Put this user in waiting queue
-    waitingUser = socket.id;
-  }
+  socket.on("ready", () => {
+    if (waitingUser) {
+      io.to(waitingUser).emit("match", socket.id);
+      io.to(socket.id).emit("match", waitingUser);
+      waitingUser = null;
+    } else {
+      waitingUser = socket.id;
+    }
+  });
 
-  // Relay signals only between matched peers
   socket.on("signal", (data) => {
     io.to(data.to).emit("signal", { from: socket.id, signal: data.signal });
   });
