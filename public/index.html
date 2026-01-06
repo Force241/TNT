@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>T N T</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styela.css">
+  <script src="/socket.io/socket.io.js"></script>
+
+  
+</head>
+<body>
+   <script>
+    const socket = io("http:// 192.168.0.100:3000"); // change to your server URL
+    const peerConnection = new RTCPeerConnection();
+
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        document.getElementById("localVideo").srcObject = stream;
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream));
+      });
+
+    peerConnection.ontrack = event => {
+      document.getElementById("remoteVideo").srcObject = event.streams[0];
+    };
+
+    socket.on("match", async (partnerId) => {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      socket.emit("signal", { to: partnerId, signal: offer });
+    });
+
+    socket.on("signal", async (data) => {
+      if (data.signal.type === "offer") {
+        await peerConnection.setRemoteDescription(data.signal);
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        socket.emit("signal", { to: data.from, signal: answer });
+      } else if (data.signal.type === "answer") {
+        await peerConnection.setRemoteDescription(data.signal);
+      } else if (data.signal.candidate) {
+        await peerConnection.addIceCandidate(data.signal.candidate);
+      }
+    });
+
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        socket.emit("signal", { to: partnerId, signal: event.candidate });
+      }
+    };
+  </script>
+
+
+
+  <!-- HEADER -->
+  <div id="tntTitle"><span>T</span><span>N</span><span>T</span></div>
+  <div id="ownerTag">@kc silco (Owner)</div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="overlay-screen">
+    <div class="overlay-box">
+      <h2>Login</h2>
+      <label>Email (Gmail only)</label>
+      <input type="email" id="emailInput" placeholder="example@gmail.com">
+      <label>Username</label>
+      <input type="text" id="usernameInput" placeholder="Your username">
+      <button id="loginBtn">Continue</button>
+      <p id="loginError" class="error"></p>
+    </div>
+  </div>
+
+  <!-- INFO SCREEN -->
+  <div id="infoScreen" class="overlay-screen" style="display:none;">
+    <div class="overlay-box">
+      <h2>Your Info</h2>
+      <label>Gender</label>
+      <select id="genderInput">
+        <option value="">Select gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+        <option>Prefer not to say</option>
+      </select>
+      <label>Age</label>
+      <input type="number" id="ageInput" placeholder="Enter your age" min="1" max="120">
+      <label>Country</label>
+      <select id="countryInput">
+        <option value="">Select country</option>
+        <!-- note: UN-recognized countries list -->
+        <option>Afghanistan</option>
+        <option>Albania</option>
+        <option>Algeria</option>
+        <option>Andorra</option>
+        <option>Angola</option>
+        <option>Antigua and Barbuda</option>
+        <option>Argentina</option>
+        <option>Armenia</option>
+        <option>Australia</option>
+        <option>Austria</option>
+        <option>Azerbaijan</option>
+        <option>Bahamas</option>
+        <option>Bahrain</option>
+        <option>Bangladesh</option>
+        <option>Barbados</option>
+        <option>Belarus</option>
+        <option>Belgium</option>
+        <option>Belize</option>
+        <option>Benin</option>
+        <option>Bhutan</option>
+        <option>Bolivia</option>
+        <option>Bosnia and Herzegovina</option>
+        <option>Botswana</option>
+        <option>Brazil</option>
+        <option>Brunei</option>
+        <option>Bulgaria</option>
+        <option>Burkina Faso</option>
+        <option>Burundi</option>
+        <option>Cabo Verde</option>
+        <option>Cambodia</option>
+        <option>Cameroon</option>
+        <option>Canada</option>
+        <option>Central African Republic</option>
+        <option>Chad</option>
+        <option>Chile</option>
+        <option>China</option>
+        <option>Colombia</option>
+        <option>Comoros</option>
+        <option>Congo, Democratic Republic of the</option>
+        <option>Congo, Republic of the</option>
+        <option>Costa Rica</option>
+        <option>Côte d'Ivoire</option>
+        <option>Croatia</option>
+        <option>Cuba</option>
+        <option>Cyprus</option>
+        <option>Czech Republic</option>
+        <option>Denmark</option>
+        <option>Djibouti</option>
+        <option>Dominica</option>
+        <option>Dominican Republic</option>
+        <option>Ecuador</option>
+        <option>Egypt</option>
+        <option>El Salvador</option>
+        <option>Equatorial Guinea</option>
+        <option>Eritrea</option>
+        <option>Estonia</option>
+        <option>Eswatini</option>
+        <option>Ethiopia</option>
+        <option>Fiji</option>
+        <option>Finland</option>
+        <option>France</option>
+        <option>Gabon</option>
+        <option>Gambia</option>
+        <option>Georgia</option>
+        <option>Germany</option>
+        <option>Ghana</option>
+        <option>Greece</option>
+        <option>Grenada</option>
+        <option>Guatemala</option>
+        <option>Guinea</option>
+        <option>Guinea-Bissau</option>
+        <option>Guyana</option>
+        <option>Haiti</option>
+        <option>Honduras</option>
+        <option>Hungary</option>
+        <option>Iceland</option>
+        <option>India</option>
+        <option>Indonesia</option>
+        <option>Iran</option>
+        <option>Iraq</option>
+        <option>Ireland</option>
+        <option>Israel</option>
+        <option>Italy</option>
+        <option>Jamaica</option>
+        <option>Japan</option>
+        <option>Jordan</option>
+        <option>Kazakhstan</option>
+        <option>Kenya</option>
+        <option>Kiribati</option>
+        <option>Kuwait</option>
+        <option>Kyrgyzstan</option>
+        <option>Laos</option>
+        <option>Latvia</option>
+        <option>Lebanon</option>
+        <option>Lesotho</option>
+        <option>Liberia</option>
+        <option>Libya</option>
+        <option>Liechtenstein</option>
+        <option>Lithuania</option>
+        <option>Luxembourg</option>
+        <option>Madagascar</option>
+        <option>Malawi</option>
+        <option>Malaysia</option>
+        <option>Maldives</option>
+        <option>Mali</option>
+        <option>Malta</option>
+        <option>Marshall Islands</option>
+        <option>Mauritania</option>
+        <option>Mauritius</option>
+        <option>Mexico</option>
+        <option>Micronesia</option>
+        <option>Moldova</option>
+        <option>Monaco</option>
+        <option>Mongolia</option>
+        <option>Montenegro</option>
+        <option>Morocco</option>
+        <option>Mozambique</option>
+        <option>Myanmar</option>
+        <option>Namibia</option>
+        <option>Nauru</option>
+        <option>Nepal</option>
+        <option>Netherlands</option>
+        <option>New Zealand</option>
+        <option>Nicaragua</option>
+        <option>Niger</option>
+        <option>Nigeria</option>
+        <option>North Korea</option>
+        <option>North Macedonia</option>
+        <option>Norway</option>
+        <option>Oman</option>
+        <option>Pakistan</option>
+        <option>Palau</option>
+        <option>Panama</option>
+        <option>Papua New Guinea</option>
+        <option>Paraguay</option>
+        <option>Peru</option>
+        <option>Philippines</option>
+        <option>Poland</option>
+        <option>Portugal</option>
+        <option>Qatar</option>
+        <option>Romania</option>
+        <option>Russia</option>
+        <option>Rwanda</option>
+        <option>Saint Kitts and Nevis</option>
+        <option>Saint Lucia</option>
+        <option>Saint Vincent and the Grenadines</option>
+        <option>Samoa</option>
+        <option>San Marino</option>
+        <option>Sao Tome and Principe</option>
+        <option>Saudi Arabia</option>
+        <option>Senegal</option>
+        <option>Serbia</option>
+        <option>Seychelles</option>
+        <option>Sierra Leone</option>
+        <option>Singapore</option>
+        <option>Slovakia</option>
+        <option>Slovenia</option>
+        <option>Solomon Islands</option>
+        <option>Somalia</option>
+        <option>South Africa</option>
+        <option>South Korea</option>
+        <option>South Sudan</option>
+        <option>Spain</option>
+        <option>Sri Lanka</option>
+        <option>Sudan</option>
+        <option>Suriname</option>
+        <option>Sweden</option>
+        <option>Switzerland</option>
+        <option>Syria</option>
+        <option>Tajikistan</option>
+        <option>Tanzania</option>
+        <option>Thailand</option>
+        <option>Timor-Leste</option>
+        <option>Togo</option>
+        <option>Tonga</option>
+        <option>Trinidad and Tobago</option>
+        <option>Tunisia</option>
+        <option>Turkey</option>
+        <option>Turkmenistan</option>
+        <option>Tuvalu</option>
+        <option>Uganda</option>
+        <option>Ukraine</option>
+        <option>United Arab Emirates</option>
+        <option>United Kingdom</option>
+        <option>United States</option>
+        <option>Uruguay</option>
+        <option>Uzbekistan</option>
+        <option>Vanuatu</option>
+        <option>Venezuela</option>
+        <option>Vietnam</option>
+        <option>Yemen</option>
+        <option>Zambia</option>
+        <option>Zimbabwe</option>
+        <!-- UN observer states -->
+        <option>Holy See</option>
+        <option>State of Palestine</option>
+      </select>
+      <button id="infoBtn">Continue</button>
+      <p id="infoError" class="error"></p>
+    </div>
+  </div>
+
+  <!-- POLICY / RULES -->
+  <div id="policyScreen" class="overlay-screen" style="display:none;">
+    <div class="overlay-box">
+      <h2>Policy & Rules</h2>
+      <textarea id="policyText" readonly>
+Basic Rules for TNT (adjust as needed):
+
+1. You must be 18 years or older to use this website.
+2. Be respectful. Do not harass, bully, threaten, or intimidate others.
+3. Do not share illegal content or use this site for illegal activities.
+4. Do not share personal information (address, passwords, financial data).
+5. Do not share sexual, hateful, or extremely violent content.
+6. Report any user who breaks these rules using the report tool.
+7. Follow the laws and regulations of your own country while using this website.
+
+By continuing, you confirm that you understand and agree to these rules.
+      </textarea>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+        <input type="checkbox" id="policyAgree">
+        <span>I have read and agree to the rules</span>
+      </label>
+      <button id="policyBtn">Continue</button>
+      <p id="policyError" class="error"></p>
+    </div>
+  </div>
+
+  <!-- BLOCKED SCREEN -->
+  <div id="blockedScreen" class="overlay-screen" style="display:none;">
+    <div class="overlay-box">
+      <h2>Access Blocked</h2>
+      <p>To use TNT, you must allow:</p>
+      <ul>
+        <li>Camera</li>
+        <li>Microphone</li>
+        <li>Location (for country detection)</li>
+      </ul>
+      <p>Please refresh the page and click "Allow" when your browser asks for permissions.</p>
+      <button id="blockedReloadBtn">Reload Page</button>
+    </div>
+  </div>
+
+  <!-- REPORT SCREEN -->
+  <div id="reportScreen" class="overlay-screen" style="display:none;">
+    <div class="overlay-box">
+      <h2>Report User</h2>
+      <label>Reason</label>
+      <select id="reportReason">
+        <option value="">Select a reason</option>
+        <option>Harassment / Bullying</option>
+        <option>Hate Speech</option>
+        <option>Nudity / Sexual Content</option>
+        <option>Violence / Threats</option>
+        <option>Spam / Scams</option>
+        <option>Underage User</option>
+        <option>Other</option>
+      </select>
+      <label>Details</label>
+      <textarea id="reportDetails" placeholder="Describe what happened..."></textarea>
+      <button id="submitReportBtn">Submit Report</button>
+      <button id="cancelReportBtn" style="background:#555;margin-top:8px;">Cancel</button>
+      <p id="reportError" class="error"></p>
+    </div>
+  </div>
+
+  <!-- REPORT THANK YOU SCREEN -->
+  <div id="reportThanksScreen" class="overlay-screen" style="display:none;">
+    <div class="overlay-box">
+      <h2>Report Submitted</h2>
+      <p>Thank you. Your report has been received.</p>
+      <button id="reportThanksBtn">Close</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <main>
+    <div class="video-area">
+      <div class="section-title">Your Camera</div>
+      <div class="video-box" id="myCameraBox"></div>
+
+      <div class="section-title">Stranger Camera</div>
+      <div class="video-box" id="strangerCameraBox">
+        <span>Stranger camera preview (placeholder)</span>
+      </div>
+    </div>
+
+    <div class="chat-area">
+      <div class="control-buttons">
+        <button id="startBtn">Start</button>
+        <button id="connectBtn">Connect Me With Stranger</button>
+        <button id="reportBtn">Report</button>
+      </div>
+
+      <div class="section-title">Chat</div>
+      <div class="chat-messages" id="chatMessages">
+        <p>Welcome to TNT Chat!</p>
+      </div>
+
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type a message...">
+        <button id="sendBtn">Send</button>
+      </div>
+    </div>
+  </main>
+
+ 
+  <script src="jk.js"></script>
+</body>
+</html>
